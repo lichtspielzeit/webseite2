@@ -1,0 +1,118 @@
+import React, { useState } from 'react';
+
+const EmailForm = () => {
+  const [email, setEmail] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const apiKey = import.meta.env.VITE_BREVO_API_KEY;
+
+    try {
+      const response = await fetch('https://api.brevo.com/v3/contacts', {
+        method: 'POST',
+        headers: {
+          accept: 'application/json',
+          'api-key': apiKey,
+          'content-type': 'application/json'
+        },
+        body: JSON.stringify({
+          email: email,
+          attributes: {
+            FIRSTNAME: firstName
+          },
+          listIds: [3], // Deine Brevo-Liste „freebie“
+          updateEnabled: true
+        })
+      });
+
+      if (response.status === 201 || response.status === 204) {
+        setSubmitted(true);
+        setError(false);
+      } else {
+        setSubmitted(false);
+        setError(true);
+      }
+    } catch (err) {
+      setSubmitted(false);
+      setError(true);
+    }
+  };
+
+  return (
+    <div style={{ padding: '2rem', textAlign: 'center' }}>
+      {!submitted ? (
+        <form onSubmit={handleSubmit}>
+          <h2>✨ Hol dir dein kostenloses Freebie ✨</h2>
+
+          <input
+            type="text"
+            placeholder="Dein Vorname"
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
+            style={{ margin: '10px', padding: '10px', width: '80%' }}
+            required
+          />
+          <br />
+          <input
+            type="email"
+            placeholder="Deine E-Mail-Adresse"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            style={{ margin: '10px', padding: '10px', width: '80%' }}
+            required
+          />
+          <br />
+
+          <button
+            type="submit"
+            style={{
+              backgroundColor: '#8B5A9B',
+              color: 'white',
+              padding: '12px 24px',
+              borderRadius: '8px',
+              border: 'none',
+              fontSize: '1rem',
+              marginTop: '10px'
+            }}
+          >
+            Jetzt kostenlos erhalten
+          </button>
+
+          <p style={{ fontSize: '0.85rem', color: '#555', marginTop: '10px' }}>
+            Mit Klick auf den Button erklärst du dich mit der Verarbeitung deiner Daten gemäß unserer{' '}
+            <a href="/datenschutz.html" style={{ color: '#8B5A9B' }}>
+              Datenschutzerklärung
+            </a>{' '}
+            einverstanden.
+          </p>
+        </form>
+      ) : (
+        <div>
+          <h3>🎉 Danke für deine Anmeldung!</h3>
+          <p>
+            Schau gleich in dein Postfach – dein Geschenk ist unterwegs 💌  
+            Falls du es nicht findest, prüf den Spam-Ordner.
+          </p>
+          <p>
+            Oder lade es direkt hier herunter: <br />
+            <a href="/lichtspielzeit-freebie.pdf" style={{ color: '#8B5A9B' }} download>
+              PDF herunterladen
+            </a>
+          </p>
+        </div>
+      )}
+
+      {error && (
+        <p style={{ color: 'red', marginTop: '10px' }}>
+          Da ist etwas schiefgelaufen. Bitte versuche es später erneut 🙈
+        </p>
+      )}
+    </div>
+  );
+};
+
+export default EmailForm;
